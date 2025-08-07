@@ -1,4 +1,4 @@
-# Create a new, cleaner .gitignore
+# Create a better .gitignore to exclude large files
 cat > .gitignore << 'EOF'
 # Python
 __pycache__/
@@ -15,21 +15,28 @@ pip-log.txt
 .env
 *.env
 
-# Credentials (IMPORTANT - don't upload these!)
+# Credentials
 credentials.json
 
-# AI models/databases
+# AI models/databases (these are huge!)
 docs/
 *.db
+*.sqlite3
 
-# Project folders to ignore (only these specific ones)
+# Project folders to ignore
 old/
+source/
+venv/
+
+# Large files
+psychbot-logo.png
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
 
 # OS
 .DS_Store

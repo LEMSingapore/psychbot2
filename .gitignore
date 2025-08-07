@@ -1,0 +1,38 @@
+cat > .gitignore << 'EOF'
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+
+# Environment variables
+.env
+*.env
+
+# Credentials
+credentials.json
+*.json
+
+# AI models/databases
+docs/
+*.db
+
+# Project folders to ignore
+old/
+source/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+EOF

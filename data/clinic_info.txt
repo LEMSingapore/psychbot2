@@ -1,0 +1,25 @@
+Dr. Tan's Psychotherapy Clinic Information
+
+Services Offered:
+- Individual Therapy: $120 per session (50 minutes)
+- Couples Therapy: $180 per session (80 minutes)
+- Family Therapy: $200 per session (90 minutes)
+- Group Therapy: $60 per session (90 minutes)
+- Online Therapy: $100 per session (50 minutes)
+
+Specializations:
+- Cognitive Behavioral Therapy (CBT)
+- Dialectical Behavior Therapy (DBT)
+- Anxiety and Depression Treatment
+- Trauma and PTSD Treatment
+- Relationship Counseling
+
+Operating Hours:
+Monday to Friday: 9:00 AM - 7:00 PM
+Saturday: 9:00 AM - 5:00 PM
+Sunday: Closed
+
+Location:
+123 Therapy Street, Singapore 123456
+Phone: +65 6123 4567
+Email: appointments@drtanpsych.com

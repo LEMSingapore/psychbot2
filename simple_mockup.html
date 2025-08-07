@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raffles Medical Group - PsychBot Integration</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        .header {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c8e72;
+        }
+        
+        .nav-bar {
+            background: #f8f9fa;
+            padding: 15px 0;
+            text-align: center;
+        }
+        
+        .nav-bar a {
+            color: #666;
+            text-decoration: none;
+            margin: 0 20px;
+            font-size: 14px;
+        }
+        
+        .tele-banner {
+            background: #2c8e72;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #2c8e72, #50C878);
+            color: white;
+            text-align: center;
+            padding: 100px 20px;
+        }
+        
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        .hero p {
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+        
+        .search-bar {
+            max-width: 600px;
+            margin: 0 auto 60px;
+            display: flex;
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .search-btn {
+            background: #2c8e72;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            cursor: pointer;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .action-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 15px 30px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .news-section {
+            max-width: 1200px;
+            margin: 80px auto;
+            padding: 0 20px;
+        }
+        
+        .news-section h2 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 40px;
+        }
+        
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .news-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .news-image {
+            height: 200px;
+            background: linear-gradient(45deg, #2c8e72, #50C878);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+        }
+        
+        .news-content {
+            padding: 20px;
+        }
+        
+        .news-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .news-text {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* =============================== */
+        /* SIMPLIFIED CHATBOT INTEGRATION */
+        /* =============================== */
+        
+        /* PsychBot Button - Clean and Simple */
+        .psychbot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2c8e72, #50C878);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(44, 142, 114, 0.3);
+            z-index: 1001;
+            transition: transform 0.3s;
+        }
+        
+        .psychbot-btn:hover { transform: scale(1.1); }
+        .psychbot-btn.hidden { display: none; }
+        
+        .new-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff6b6b;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        
+        /* Chat Widget - Simplified */
+        .chat-widget {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            border: 2px solid #2c8e72;
+        }
+        
+        .chat-widget.show {
+            display: flex;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #2c8e72, #50C878);
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 13px 13px 0 0;
+        }
+        
+        .chat-logo {
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-title {
+            flex: 1;
+            font-weight: bold;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .user-message {
+            background: #e3f2fd;
+            margin-left: 20px;
+        }
+        
+        .chat-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            border-radius: 0 0 13px 13px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+        
+        .chat-input:focus { border-color: #2c8e72; }
+        
+        .send-btn {
+            background: #2c8e72;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2em; }
+            .action-buttons { flex-direction: column; align-items: center; }
+            .chat-widget { width: 300px; right: 15px; }
+            .psychbot-btn { width: 50px; height: 50px; font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Original Raffles Medical Website Content -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🏥 RafflesMedicalGroup</div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <a href="#">Services</a>
+        <a href="#">Government Schemes</a>
+        <a href="#">Corporate Healthcare</a>
+        <a href="#">Training</a>
+        <a href="#">Insurance</a>
+        <a href="#">International</a>
+        <a href="#">Health Resources</a>
+    </div>
+
+    <div class="tele-banner">
+        <strong>Teleconsultation</strong> with Raffles Medical doctor 24/7
+    </div>
+
+    <div class="hero">
+        <h1>Singapore's largest homegrown private healthcare provider.</h1>
+        <p>Start by searching for any services, doctors, clinics or health articles.</p>
+        
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Type your Search and press Enter...">
+            <button class="search-btn">🔍</button>
+        </div>
+
+        <div class="action-buttons">
+            <a href="#" class="action-btn">📍 Find a clinic near you</a>
+            <a href="#" class="action-btn">👨‍⚕️ Find a doctor</a>
+        </div>
+    </div>
+
+    <div class="news-section">
+        <h2>Latest News</h2>
+        <div class="news-grid">
+            <div class="news-card">
+                <div class="news-image">🇸🇬</div>
+                <div class="news-content">
+                    <div class="news-title">$60 Nov, festive Health Screening</div>
+                    <div class="news-text">Comprehensive health screening packages available during the festive season.</div>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-image">💉</div>
+                <div class="news-content">
+                    <div class="news-title">Measles Immunity for Travellers</div>
+                    <div class="news-text">Important vaccination information for international travelers.</div>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-image">🏠</div>
+                <div class="news-content">
+                    <div class="news-title">Home Care Medical Support</div>
+                    <div class="news-text">Professional medical care services in the comfort of your home.</div>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-image">👨‍👩‍👧‍👦</div>
+                <div class="news-content">
+                    <div class="news-title">Our Health Screening Packages</div>
+                    <div class="news-text">Comprehensive health screening options for the whole family.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================== -->
+    <!-- EMBEDDED PSYCHBOT CHATBOT -->
+    <!-- ========================== -->
+    
+    <button class="psychbot-btn" onclick="toggleChat()">
+        🧠
+        <div class="new-badge">NEW</div>
+    </button>
+
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header">
+            <div class="chat-logo">🤖</div>
+            <div class="chat-title">PsychBot - Mental Health Support</div>
+            <button class="close-btn" onclick="toggleChat()">×</button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message">
+                <strong>PsychBot:</strong> Hello! I'm here to help with Dr. Sarah Tan's psychotherapy clinic. I can provide information about mental health services and help you book appointments. How can I assist you?
+            </div>
+            <div class="message">
+                <strong>Services Available:</strong><br>
+                • Individual Therapy ($120/50min)<br>
+                • Couples Therapy ($180/80min)<br>
+                • Family Therapy ($200/90min)<br>
+                • Online Therapy ($100/50min)
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Ask about mental health services...">
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Simple chatbot integration script
+        let chatOpen = false;
+
+        function toggleChat() {
+            if (chatOpen) {
+                document.getElementById('chatWidget').classList.remove('show');
+                document.querySelector('.psychbot-btn').classList.remove('hidden');
+                chatOpen = false;
+            } else {
+                document.getElementById('chatWidget').classList.add('show');
+                document.querySelector('.psychbot-btn').classList.add('hidden');
+                chatOpen = true;
+                document.getElementById('chatInput').focus();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(`<strong>You:</strong> ${message}`, true);
+            input.value = '';
+
+            // Disable input
+            const sendBtn = document.getElementById('sendBtn');
+            input.disabled = true;
+            sendBtn.disabled = true;
+
+            // Show typing
+            const typingMsg = addMessage('<strong>PsychBot:</strong> <em>typing...</em>');
+
+            // API call with fallback
+            fetch("http://127.0.0.1:9000/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(data => {
+                typingMsg.remove();
+                addMessage(`<strong>PsychBot:</strong> ${data.response}`);
+            })
+            .catch(() => {
+                typingMsg.remove();
+                addMessage(`<strong>PsychBot:</strong> ${getDemoResponse(message)}`);
+            })
+            .finally(() => {
+                input.disabled = false;
+                sendBtn.disabled = false;
+                input.focus();
+            });
+        }
+
+        function addMessage(content, isUser = false) {
+            const chatArea = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : ''}`;
+            messageDiv.innerHTML = content;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return messageDiv;
+        }
+
+        function getDemoResponse(message) {
+            const msg = message.toLowerCase();
+            if (msg.includes('book')) return "I'll help you book an appointment. What's your full name?";
+            if (msg.includes('service')) return "We offer Individual ($120), Couples ($180), Family ($200), and Online ($100) therapy. Want to book?";
+            if (msg.includes('hour')) return "Mon-Fri 9AM-7PM, Sat 9AM-5PM, closed Sundays. Ready to schedule?";
+            return "I can help with therapy services, pricing, or booking. What would you like to know?";
+        }
+
+        // Enter to send
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>

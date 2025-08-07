@@ -24,143 +24,144 @@ A RAG-powered virtual receptionist for Dr. Sarah Tan's psychotherapy clinic. Psy
 
 ---
 
-## Quickstart
+## 🛠️ Quickstart
 
 ### Prerequisites
 
-* Python 3.8 or higher
-* Ollama with Llama 3 model installed
-* Google service account credentials (`credentials.json`) - optional
-* SendGrid API key - optional
+- Python 3.8 or higher
+- [Ollama](https://ollama.ai/download) with `llama3:latest` model installed
+- Optional: Google service account (`credentials.json`)
+- Optional: SendGrid API key
+
+---
 
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/psychbot.git
-cd psychbot
+# Clone the repo
+git clone https://github.com/LEMSingapore/psychbot2.git
+cd psychbot2
+
+# (Optional) Create a virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install required Python packages
 pip install -r requirements.txt
 ```
+
+---
 
 ### Setup Ollama (Required)
 
 ```bash
-# Install Ollama (see https://ollama.ai)
+# Pull and run the Llama 3 model
 ollama pull llama3:latest
 ollama serve
 ```
 
-### Configuration (Optional)
+> Leave Ollama running in a separate terminal tab or window.
 
-Create a `.env` file for email/calendar integration:
+---
+
+### Optional: Email/Calendar Configuration
+
+Create a `.env` file in the root project directory:
 
 ```env
-SENDGRID_API_KEY=YOUR_SENDGRID_API_KEY
+SENDGRID_API_KEY=your-sendgrid-api-key
 GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
 ```
 
+Ensure `credentials.json` is also in the root folder.
+
+---
+
 ### Running the Demo
 
-1. **Prepare the knowledge base**
-   ```bash
-   python src/ingest.py
-   ```
+```bash
+# 1. Prepare the knowledge base
+python src/ingest.py
 
-2. **Start the backend API**
-   ```bash
-   python main.py
-   ```
+# 2. Start the backend API
+python main.py
 
-3. **Open the demo page**
-   ```bash
-   # Open simple_mockup.html in your browser
-   open simple_mockup.html
-   ```
+# 3. Open the chatbot interface
+open simple_mockup.html  # Or double-click the file
+```
 
-4. **Try the chatbot** - Click the brain icon and ask questions like:
-   - "What services do you offer?"
-   - "How much does therapy cost?"
-   - "I want to book an appointment"
+Ask questions like:
+
+- "What services do you offer?"
+- "How much does therapy cost?"
+- "I want to book an appointment"
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-psychbot/
-├── README.md                 # Project documentation
-├── requirements.txt          # Python dependencies
-├── main.py                   # FastAPI application entry point
-├── simple_mockup.html        # Demo webpage with embedded chatbot
-├── credentials.json          # Google API credentials (optional)
-├── .env                      # Environment variables (optional)
+psychbot2/
+├── README.md
+├── requirements.txt
+├── main.py
+├── simple_mockup.html
+├── credentials.json         # Optional
+├── .env                     # Optional
 │
-├── src/                      # Source code modules
-│   ├── models.py             # Pydantic data models
-│   ├── booking_service.py    # Single-session appointment booking
-│   ├── rag_chain.py          # RAG implementation with LangChain
-│   ├── content_filter.py     # Safety and content filtering
-│   ├── calendar_utils.py     # Google Calendar integration
-│   ├── email_utils.py        # SendGrid email service
-│   └── ingest.py             # Document ingestion pipeline
+├── src/
+│   ├── models.py
+│   ├── booking_service.py
+│   ├── rag_chain.py
+│   ├── content_filter.py
+│   ├── calendar_utils.py
+│   ├── email_utils.py
+│   └── ingest.py
 │
-├── data/                     # Clinic information documents
-│   ├── clinic_info.txt       # Basic clinic information
-│   ├── services.txt          # Therapy services and pricing
-│   └── faq.txt               # Frequently asked questions
+├── data/
+│   ├── clinic_info.txt
+│   ├── services.txt
+│   └── faq.txt
 │
-└── docs/                     # Generated vector database
-    └── (ChromaDB files created by ingest.py)
+└── docs/                    # ChromaDB vector store (auto-generated)
 ```
 
 ---
 
-## Demo Workflow
+## 💡 Demo Highlights
 
-### 1. Document Ingestion Demo
+### 1. Document Ingestion
 ```bash
 python src/ingest.py
 ```
-Shows how text documents are processed into vector embeddings for semantic search.
 
-### 2. Integration Demo
-The HTML mockup shows how PsychBot embeds into a real medical website without disrupting the existing design.
+Converts text files into vector embeddings for semantic search.
 
-### 3. RAG Conversation Demo
-Ask questions about the clinic - the system will:
-1. Convert your question to vectors
-2. Search for relevant document chunks
-3. Generate contextual responses using Llama 3
+### 2. Chatbot Embedding
+Demo page shows how PsychBot can be embedded into existing websites.
 
-### 4. Booking Flow Demo
-Type "book appointment" to see the guided booking system:
-1. Collects patient information step-by-step
-2. Validates inputs (NRIC, date/time formats)
-3. Creates calendar events and sends confirmations
+### 3. Smart Conversations
+AI retrieves document snippets and generates human-like responses.
 
-### 5. Guardrails for Privacy and Ethics
-Ask irrevalent questions about the clinic or Dr Tan, or some self-harm comments - the system will:
-1. Provide some self-harm prevention information (on the topic of self-harm)
-2. Reject the question and steer the patient back to the clinic's services or provide appointment booking assistance (on the topic of irrelevant or privacy matters)
+### 4. Appointment Booking
+Type "book appointment" and go through the full flow:
+- Collects patient info
+- Validates date/time and NRIC
+- Sends confirmation via email (if enabled)
+
+### 5. Guardrails
+Handles self-harm or irrelevant questions by:
+- Redirecting to professional help
+- Steering back to clinic services
 
 ---
 
-## Key Architecture Features
+## ⚙️ Design Features
 
-- **Single Session Design** - Simplified state management for demos
-- **Synchronous RAG** - Synchronous handling makes it easier to understand
-- **Modular Components** - Each service is independently testable
-- **Graceful Fallbacks** - Demo responses when external services unavailable
-
----
-
-## Development
-
-The codebase is designed for for educational demos only:
-
-- Simplified synchronous handling for easier understanding
-- Mock integrations that can be easily replaced with real services (simple_mockup.html)
-- Comprehensive comments explaining RAG concepts and Business functionalities
-- Clean separation between AI logic and business logic
+- **Single-Session Design** – Easy to understand and reset
+- **Modular Services** – Each function is independently testable
+- **Fallback-Ready** – Works even if calendar/email APIs are missing
+- **Beginner-Friendly** – Clear separation between AI logic and backend code
 
 ---
 

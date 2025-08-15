@@ -153,7 +153,7 @@ Now you can chat with the bot! Try asking:
 
 ## Project Files
 
-'''
+```
 psychbot2/
 ├── README.md              # This file
 ├── requirements.txt       # Python packages needed
@@ -173,7 +173,8 @@ psychbot2/
 ├── data/                 # Clinic information files
 ├── docs/                 # AI knowledge (created automatically)
 └── venv/                 # Python environment (you create this)
-'''
+```
+
 ---
 
 ## What the Chatbot Can Do

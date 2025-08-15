@@ -1,6 +1,6 @@
 # src/email_utils.py
 # Email notification utilities for PsychBot appointment confirmations
-# Handles sending appointment confirmation emails to patients using SendGrid
+# Handles sending appointment confirmation emails to patients using SendGrid.
 
 import os  # For accessing environment variables
 from sendgrid import SendGridAPIClient  # Main SendGrid client for API communication

@@ -27,8 +27,8 @@ def send_confirmation(to_email, name, dt):
 
     # Build email message
     message = Mail(
-        from_email="weddingvowsmanifesto@gmail.com",  # Clinic email
-        to_emails=to_email,                           # Patient email
+        from_email="weddingvowsmanifesto@gmail.com",  # Sender (Clinic email)
+        to_emails=to_email,                           # Recipient (Patient email)
         subject="Your Appointment with Dr. Tan is Confirmed",
         
         # HTML email with appointment details and clinic address
@@ -40,7 +40,9 @@ def send_confirmation(to_email, name, dt):
         <p>— Dr. Tan's Clinic</p>
         """
     )
+
+    # Initialize SendGrid client with API key from environment variables
+    sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
     
-    # Send email using SendGrid API
-    sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))  # Get API key from environment
-    sg.send(message)  # Send the email
+    # Actually send the email through SendGrid's API
+    sg.send(message)

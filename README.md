@@ -82,7 +82,7 @@ pip install -r requirements.txt
 
 ```powershell
 # Download the AI model
-ollama pull llama3:latest
+ollama pull llama3:8b
 
 # Check if it's working
 curl http://localhost:11434

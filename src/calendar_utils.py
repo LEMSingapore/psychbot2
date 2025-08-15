@@ -1,5 +1,5 @@
 # src/calendar_utils.py
-# Google Calendar integration utilities for PsychBot appointment booking
+# Google Calendar integration utilities for PsychBot appointment booking.
 # Handles creating therapy session appointments directly in Dr. Sarah Tan's Google Calendar (weddingvowsmanifesto@gmail.com)
 
 # Google API client libraries for Calendar integration

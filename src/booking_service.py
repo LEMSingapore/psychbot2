@@ -20,22 +20,18 @@ logger = logging.getLogger(__name__)
 
 class BookingStep(Enum):
     """
-    Steps in the booking process. Each step asks for different info:
-    - NOT_STARTED: No booking happening yet
-    - COLLECT_NAME: Getting the patient's name
-    - COLLECT_NRIC: Getting their ID number
-    - COLLECT_DATE: Getting appointment date
-    - COLLECT_TIME: Getting appointment time
-    - COLLECT_EMAIL: Getting email for confirmation
-    - COMPLETED: Booking is done
+    Tracks which step of booking we're on - like a checklist.
+    
+    Booking flow: Name → NRIC → Date → Time → Email → Done
+    Each step asks for different information from the user.
     """
-    NOT_STARTED = "not_started"
-    COLLECT_NAME = "collect_name"
-    COLLECT_NRIC = "collect_nric"
-    COLLECT_DATE = "collect_date"
-    COLLECT_TIME = "collect_time"
-    COLLECT_EMAIL = "collect_email"
-    COMPLETED = "completed"
+    NOT_STARTED = "not_started"    # No booking in progress
+    COLLECT_NAME = "collect_name"  # Asking for patient's full name
+    COLLECT_NRIC = "collect_nric"  # Asking for Singapore ID number
+    COLLECT_DATE = "collect_date"  # Asking for appointment date
+    COLLECT_TIME = "collect_time"  # Asking for appointment time
+    COLLECT_EMAIL = "collect_email" # Asking for email address
+    COMPLETED = "completed"        # Booking is finished
 
 # ===============================
 # MAIN BOOKING SERVICE CLASS
@@ -43,17 +39,18 @@ class BookingStep(Enum):
 
 class BookingService:
     """
-    Handles appointment bookings for the clinic.
+    Handles the complete appointment booking process.
     
-    Speed tricks used:
-    - Compile regex patterns once, not every time we use them
-    - Use dictionaries for fast lookups instead of searching lists
+    Works like a conversation - asks questions one by one,
+    validates each answer, then moves to the next question.
     """
     
     def __init__(self):
         """
-        Set up the booking service with fast lookup tables and patterns.
+        Set up the booking system with fast validation patterns.
         
+        Pre-compiles all regex patterns for speed - compiling patterns
+        is slow, so we do it once here instead of every time we validate.
         """
         # Track where we are in booking process
         self.current_step = BookingStep.NOT_STARTED
@@ -89,13 +86,15 @@ class BookingService:
         }
     
     # ===============================
-    # BOOKING TRIGGER DETECTION
+    # BOOKING DETECTION
     # ===============================
     
     def is_booking_trigger(self, message: str) -> bool:
         """
-        Check if user wants to book appointment.
-        Looks for booking words in their message.
+        Check if user wants to start booking an appointment.
+        
+        Looks for booking-related keywords in their message.
+        Returns True if we should start the booking conversation.
         """
         message_lower = message.lower()
         # Stop checking as soon as we find a booking word
@@ -103,13 +102,16 @@ class BookingService:
     
     def get_or_create_guided_session(self, message: str) -> str:
         """
-        Start fresh booking. Always wipe old data to avoid mixing bookings.
+        Start a fresh booking session.
+        
+        Always clears old data to prevent mixing up different bookings.
+        Returns a session ID (we just use "current" since one user at a time).
         """
         self._reset_session()
         return "current"
     
     # ===============================
-    # MAIN BOOKING FLOW PROCESSOR
+    # MAIN BOOKING CONVERSATION HANDLER
     # ===============================
     
     def process_guided_booking_step(self, session_id: str, message: str) -> str:
@@ -296,7 +298,7 @@ To reschedule: +65 6311 2330"""
             return "Booking error occurred. Please call +65 6311 2330."
     
     # ===============================
-    # SESSION MANAGEMENT
+    # SESSION CLEANUP
     # ===============================
     
     def _reset_session(self):

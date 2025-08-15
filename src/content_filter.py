@@ -1,5 +1,5 @@
 # src/content_filter.py - SIMPLIFIED VERSION
-# Remove complex regex, just use simple keyword checks
+# Use simple keyword checks
 
 import logging
 from typing import Tuple
@@ -29,10 +29,12 @@ class ContentFilter:
         - Easier to maintain and update
         - Less prone to errors than complex patterns
         """
-        # Words that suggest mental health crisis - triggers safety response
+        # Critical words that indicate someone might harm themselves
+        # If found, we immediately provide crisis helpline numbers
         self.crisis_words = ['suicide', 'kill myself', 'end my life', 'hurt myself', 'self harm']
         
-        # Words related to clinic services - helps identify relevant messages
+        # Words that show the user is asking about clinic services
+        # Helps us identify legitimate appointment/therapy questions
         self.clinic_words = ['therapy', 'appointment', 'booking', 'schedule', 'services', 'hours', 'cost', 'price']
 
     def check_content(self, message: str) -> Tuple[bool, str]:
@@ -48,22 +50,27 @@ class ContentFilter:
         Returns:
             Tuple: (should_continue, response_message)
             - True means message is safe to process
-            - False means stop and return the response_message
+            - False means stop here and return the crisis response
         """
+        # Make everything lowercase so "SUICIDE" matches "suicide"
         message_lower = message.lower()
         
-        # Quick clinic check - if clinic-related, allow immediately
-        # This handles the most common case first for speed
+        # STEP 1: Check for normal clinic questions first
+        # This handles 90% of messages - people asking about appointments
+        # Return True = continue processing with the RAG system
         if any(word in message_lower for word in self.clinic_words):
-            return True, ""
+            return True, "" # Empty string = no special response needed
         
-        # Crisis check - safety is priority
-        # If we find crisis language, stop processing and give crisis resources
+        # STEP 2: Check for dangerous self-harm language
+        # This is the most important check for user safety
+        # Return False = stop processing, send crisis response immediately      
         if any(word in message_lower for word in self.crisis_words):
-            return False, "If you're having thoughts of self-harm, please call 1800-221-4444 (Singapore) or 995 for emergency."
+            crisis_response = "If you're having thoughts of self-harm, please call 1800-221-4444 (Singapore) or 995 for emergency."
+            return False, crisis_response
         
-        # Default: allow everything else
-        # Most messages will be general questions about therapy/mental health
+        # STEP 3: Default behavior for everything else
+        # General mental health questions, greetings, etc. are all okay
+        # Return True = let the RAG system handle it normally
         return True, ""
 
 # ===============================
@@ -82,20 +89,24 @@ class GuardrailsManager:
     """
     
     def __init__(self):
-        """Set up the content filter."""
+        """Create the content filter when the manager starts up."""
         self.content_filter = ContentFilter()
-    
+
     def process_message(self, message: str) -> Tuple[bool, str]:
         """
-        Process incoming message through all safety checks.
+        Run a user message through all safety checks.
         
-        Currently just does content filtering, but structured to easily
-        add more guardrails later.
+        This is the main function that the chatbot calls before
+        processing any user message.
         
         Args:
-            message: User's input message
+            message: What the user typed to the chatbot
             
         Returns:
-            Tuple: (continue_processing, safety_response)
+            Tuple of (safe_to_continue, emergency_response):
+            - If safe_to_continue is True: process message normally
+            - If safe_to_continue is False: return emergency_response immediately
         """
+        # Currently only does content filtering, but structured so we can
+        # easily add more checks here later (spam, inappropriate content, etc.)
         return self.content_filter.check_content(message)

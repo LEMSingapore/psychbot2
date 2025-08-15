@@ -153,7 +153,7 @@ Now you can chat with the bot! Try asking:
 
 ## Project Files
 
-```
+'''
 psychbot2/
 ├── README.md              # This file
 ├── requirements.txt       # Python packages needed
@@ -163,11 +163,17 @@ psychbot2/
 ├── credentials.json      # Optional: Google calendar file
 │
 ├── src/                  # Python code
+│   ├── booking_service.py    # Appointment booking system
+│   ├── calendar_utils.py     # Google Calendar integration
+│   ├── content_filter.py     # Safety and content filtering
+│   ├── email_utils.py        # Email confirmation system
+│   ├── ingest.py            # Document processing for AI
+│   └── rag_chain.py         # AI question-answering system
+│
 ├── data/                 # Clinic information files
 ├── docs/                 # AI knowledge (created automatically)
 └── venv/                 # Python environment (you create this)
-```
-
+'''
 ---
 
 ## What the Chatbot Can Do

@@ -1,5 +1,5 @@
 # src/ingest.py
-# Document ingestion script for the PsychBot RAG (Retrieval-Augmented Generation) system
+# Document ingestion script for the PsychBot RAG (Retrieval-Augmented Generation) system.
 # This script processes text documents and converts them into searchable vector embeddings
 
 import os

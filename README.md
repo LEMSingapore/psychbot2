@@ -1,170 +1,184 @@
 # PsychBot
 
-A RAG-powered virtual receptionist for Dr. Sarah Tan's psychotherapy clinic. PsychBot demonstrates advanced AI capabilities including document ingestion, vector search, and intelligent conversation flows for booking appointments.
+A smart chatbot for Dr. Sarah Tan's therapy clinic. It can answer questions and help patients book appointments.
 
-## Key Features
+## What It Does
 
-- 🤖 **RAG (Retrieval-Augmented Generation)** - Intelligent responses using clinic documents
-- 📚 **Document Ingestion** - Processes text files into searchable knowledge base
-- 🔍 **Vector Search** - Semantic document retrieval using embeddings
-- 📅 **Appointment Booking** - Step-by-step guided booking with validation
-- 🛡️ **Content Filtering** - Safety guardrails for appropriate conversations
-- 🏥 **Medical Website Integration** - Embeds seamlessly into existing websites
-
----
-
-## Technical Stack
-
-- **Backend**: FastAPI + Python
-- **AI Framework**: LangChain + Ollama (Llama 3)
-- **Vector Database**: ChromaDB
-- **Embeddings**: HuggingFace (all-MiniLM-L6-v2)
-- **Integrations**: Google Calendar + SendGrid Email
-- **Frontend**: Vanilla HTML/CSS/JavaScript
+- 🤖 **Smart Answers** - Uses clinic documents to answer questions
+- 📚 **Document Reading** - Reads text files to learn about the clinic
+- 🔍 **Smart Search** - Finds the right information quickly
+- 📅 **Book Appointments** - Helps patients schedule visits
+- 🛡️ **Safety Features** - Keeps conversations appropriate
+- 🏥 **Website Ready** - Can be added to any website
 
 ---
 
-## 🛠️ Quickstart
+## What You Need
 
-### Prerequisites
-
-- Python 3.8 or higher
-- [Ollama](https://ollama.ai/download) with `llama3:latest` model installed
-- Optional: Google service account (`credentials.json`)
-- Optional: SendGrid API key
+- **Python** (version 3.8 or newer)
+- **Ollama** (AI software that runs on your computer)
+- **Windows Terminal** or **PowerShell**
+- Optional: Email and calendar setup
 
 ---
 
-### Installation
+## Step 1: Get Python
 
-```bash
-# Clone the repo
+### If You Don't Have Python Yet:
+
+**Easy Way (Microsoft Store):**
+1. Press Windows key
+2. Type "Microsoft Store" and open it
+3. Search for "Python 3.11"
+4. Click "Install"
+
+### Test If Python Works:
+Open PowerShell and type:
+```powershell
+python --version
+```
+You should see something like "Python 3.11.x"
+
+---
+
+## Step 2: Download This Project
+
+```powershell
+# Download the project
 git clone https://github.com/LEMSingapore/psychbot2.git
 cd psychbot2
+```
 
-# (Optional) Create a virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+Or download the ZIP file from GitHub and unzip it.
 
-# Install required Python packages
+---
+
+## Step 3: Set Up Python Environment
+
+```powershell
+# Make a clean Python space for this project
+python -m venv venv
+
+# Turn it on (Command Prompt)
+venv\Scripts\activate
+
+# Turn it on (PowerShell)
+venv\Scripts\Activate.ps1
+```
+
+```powershell
+# Install the needed Python packages
 pip install -r requirements.txt
 ```
 
 ---
 
-### Setup Ollama (Required)
+## Step 4: Get Ollama (The AI Brain)
 
-```bash
-# Pull and run the Llama 3 model
+1. Go to [ollama.com](https://ollama.com/download)
+2. Download Ollama for Windows
+3. Install it (it will start automatically)
+4. Open Command Prompt or PowerShell and type:
+
+```powershell
+# Download the AI model
 ollama pull llama3:latest
-ollama serve
+
+# Check if it's working
+curl http://localhost:11434
 ```
 
-> Leave Ollama running in a separate terminal tab or window.
+If the last command shows "Ollama is running" - you're good!
 
 ---
 
-### Optional: Email/Calendar Configuration
+## Step 5: Optional - Email and Calendar Setup
 
-Create a `.env` file in the root project directory:
+**You can skip this step if you just want to test the chatbot.**
 
-```env
+If you want the chatbot to send emails and check calendars:
+
+### For Email (SendGrid):
+1. Sign up at [sendgrid.com](https://sendgrid.com)
+2. Get your API key from the dashboard
+3. Create a file called `.env` in your project folder
+4. Add this line to the `.env` file:
+```
+SENDGRID_API_KEY=your-api-key-here
+```
+
+### For Google Calendar:
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project
+3. Enable the Google Calendar API
+4. Create a service account
+5. Download the JSON file
+6. Rename it to `credentials.json`
+7. Put it in your project folder
+8. Add this line to your `.env` file:
+```
+GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
+```
+
+Your `.env` file should look like:
+```
 SENDGRID_API_KEY=your-sendgrid-api-key
 GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
 ```
 
-Ensure `credentials.json` is also in the root folder.
-
 ---
 
-### Running the Demo
+## Step 6: Run the Chatbot
 
-```bash
-# 1. Prepare the knowledge base
+```powershell
+# Make sure your Python environment is on
+# You should see (venv) at the start of your line
+
+# Prepare the chatbot's knowledge
 python src/ingest.py
 
-# 2. Start the backend API
+# Start the chatbot server
 python main.py
 
-# 3. Open the chatbot interface
-open simple_mockup.html  # Or double-click the file
+# Open the chat page
+start simple_mockup.html
 ```
 
-Ask questions like:
-
+Now you can chat with the bot! Try asking:
 - "What services do you offer?"
 - "How much does therapy cost?"
 - "I want to book an appointment"
 
 ---
 
-## 📁 Project Structure
+## Project Files
 
 ```
 psychbot2/
-├── README.md
-├── requirements.txt
-├── main.py
-├── simple_mockup.html
-├── credentials.json         # Optional
-├── .env                     # Optional
+├── README.md              # This file
+├── requirements.txt       # Python packages needed
+├── main.py               # Main server file
+├── simple_mockup.html    # Chat webpage
+├── .env                  # Optional: Email/calendar settings
+├── credentials.json      # Optional: Google calendar file
 │
-├── src/
-│   ├── models.py
-│   ├── booking_service.py
-│   ├── rag_chain.py
-│   ├── content_filter.py
-│   ├── calendar_utils.py
-│   ├── email_utils.py
-│   └── ingest.py
-│
-├── data/
-│   ├── clinic_info.txt
-│   ├── services.txt
-│   └── faq.txt
-│
-└── docs/                    # ChromaDB vector store (auto-generated)
+├── src/                  # Python code
+├── data/                 # Clinic information files
+├── docs/                 # AI knowledge (created automatically)
+└── venv/                 # Python environment (you create this)
 ```
 
 ---
 
-## 💡 Demo Highlights
+## What the Chatbot Can Do
 
-### 1. Document Ingestion
-```bash
-python src/ingest.py
-```
-
-Converts text files into vector embeddings for semantic search.
-
-### 2. Chatbot Embedding
-Demo page shows how PsychBot can be embedded into existing websites.
-
-### 3. Smart Conversations
-AI retrieves document snippets and generates human-like responses.
-
-### 4. Appointment Booking
-Type "book appointment" and go through the full flow:
-- Collects patient info
-- Validates date/time and NRIC
-- Sends confirmation via email (if enabled)
-
-### 5. Guardrails
-Handles self-harm or irrelevant questions by:
-- Redirecting to professional help
-- Steering back to clinic services
-
----
-
-## ⚙️ Design Features
-
-- **Single-Session Design** – Easy to understand and reset
-- **Modular Services** – Each function is independently testable
-- **Fallback-Ready** – Works even if calendar/email APIs are missing
-- **Beginner-Friendly** – Clear separation between AI logic and backend code
+1. **Answer Questions** - About clinic services, prices, hours
+2. **Book Appointments** - Collects patient info and schedules visits
+3. **Stay Safe** - Redirects serious questions to real doctors
+4. **Learn** - Uses clinic documents to give accurate answers
 
 ---
 
 ## License
 
-This project is licensed under the MIT License.
+This project is free to use (MIT License).

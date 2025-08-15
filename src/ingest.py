@@ -9,64 +9,59 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter  # Splits lar
 from langchain_huggingface import HuggingFaceEmbeddings  # Converts text to numerical vectors using HuggingFace models
 from langchain_community.vectorstores import Chroma  # Vector database for storing and searching embeddings
 
+# ===============================
+# MAIN INGESTION FUNCTION
+# ===============================
+
 def ingest_data(data_dir="data", persist_dir="docs"):
     """
-    Main function to process documents and create a searchable vector database
+    Turn text documents into a searchable database for the chatbot.
     
-    Process:
-    1. Load all text/markdown files from data directory
-    2. Split documents into smaller chunks for better retrieval
-    3. Convert chunks to vector embeddings using AI model
-    4. Store embeddings in a persistent vector database
+    Process: load files → split into chunks → convert to vectors → save database
     """
     
-    # STEP 1: Load all text documents from the specified directory
+    # STEP 1: Load all text files from folder
     print("📂 Loading documents from:", data_dir)
     documents = []
     
-    # Iterate through all files in the data directory
     for filename in os.listdir(data_dir):
-        # Only process text and markdown files (common documentation formats)
+        # Only process text and markdown files
         if filename.endswith(".txt") or filename.endswith(".md"):
-            # Create a TextLoader for each file and load its content
             loader = TextLoader(os.path.join(data_dir, filename))
-            # Add all loaded documents to our collection
             documents.extend(loader.load())
 
     print(f"📄 Loaded {len(documents)} documents.")
 
-    # STEP 2: Split large documents into smaller, manageable chunks
-    # This is crucial for RAG systems because:
-    # - Smaller chunks provide more precise context for questions
-    # - AI models have token limits, so chunks must fit within those limits
-    # - Better chunk granularity improves retrieval accuracy
+    # STEP 2: Break documents into smaller pieces
+    # Small chunks give better answers and fit AI model limits
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,    # Maximum characters per chunk (balance between context and precision)
-        chunk_overlap=50   # Characters to overlap between chunks (prevents losing context at boundaries)
+        chunk_size=500,    # Max characters per chunk
+        chunk_overlap=50   # Overlap to keep context
     )
     chunks = splitter.split_documents(documents)
     print(f"✂️ Split into {len(chunks)} chunks.")
 
-    # STEP 3: Create embeddings model
-    # Embeddings convert text into numerical vectors that capture semantic meaning
-    # "all-MiniLM-L6-v2" is a lightweight, efficient model good for semantic similarity
+    # STEP 3: Set up model to convert text to vectors
+    # Uses fast model that understands text meaning
     embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-    # STEP 4: Create and persist the vector database
-    # Chroma is a vector database that stores embeddings and enables similarity search
-    # When a user asks a question, the system can find the most relevant chunks
+    # STEP 4: Create searchable vector database
+    # Stores chunks as vectors so chatbot can find relevant content
     vectorstore = Chroma.from_documents(
-        documents=chunks,           # The text chunks to embed and store
-        embedding=embedding_model,  # The model to convert text to vectors
-        persist_directory=persist_dir,  # Where to save the database on disk
+        documents=chunks,
+        embedding=embedding_model,
+        persist_directory=persist_dir,
     )
     
     print("✅ Embeddings stored in:", persist_dir)
 
-# Script execution entry point
+# ===============================
+# SCRIPT EXECUTION
+# ===============================
+
 if __name__ == "__main__":
     """
-    When this script is run directly (not imported), execute the ingestion process
-    This creates the vector database that the chatbot will use to answer questions
+    Run ingestion to build chatbot's knowledge base.
+    Execute when adding new documents to data folder.
     """
     ingest_data()

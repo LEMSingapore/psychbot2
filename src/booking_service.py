@@ -14,8 +14,21 @@ from .email_utils import send_confirmation
 
 logger = logging.getLogger(__name__)
 
+# ===============================
+# BOOKING STATE MANAGEMENT
+# ===============================
+
 class BookingStep(Enum):
-    """Booking flow steps"""
+    """
+    Steps in the booking process. Each step asks for different info:
+    - NOT_STARTED: No booking happening yet
+    - COLLECT_NAME: Getting the patient's name
+    - COLLECT_NRIC: Getting their ID number
+    - COLLECT_DATE: Getting appointment date
+    - COLLECT_TIME: Getting appointment time
+    - COLLECT_EMAIL: Getting email for confirmation
+    - COMPLETED: Booking is done
+    """
     NOT_STARTED = "not_started"
     COLLECT_NAME = "collect_name"
     COLLECT_NRIC = "collect_nric"
@@ -24,64 +37,108 @@ class BookingStep(Enum):
     COLLECT_EMAIL = "collect_email"
     COMPLETED = "completed"
 
+# ===============================
+# MAIN BOOKING SERVICE CLASS
+# ===============================
+
 class BookingService:
-    """Speed-optimized booking service with pre-compiled patterns"""
+    """
+    Handles appointment bookings for the clinic.
+    
+    Speed tricks used:
+    - Compile regex patterns once, not every time we use them
+    - Use dictionaries for fast lookups instead of searching lists
+    """
     
     def __init__(self):
-        """Initialize with pre-compiled regex for speed"""
-        self.current_step = BookingStep.NOT_STARTED
-        self.booking_data = {}
+        """
+        Set up the booking service with fast lookup tables and patterns.
         
-        # PRE-COMPILED PATTERNS for faster validation
+        """
+        # Track where we are in booking process
+        self.current_step = BookingStep.NOT_STARTED
+        self.booking_data = {}  # Store user info as we collect it
+        
+        # PRE-MADE PATTERNS - compile once, use many times for speed
+        
+        # Singapore NRIC: Letter + 7 numbers + Letter (like S1234567A)
         self.nric_pattern = re.compile(r'^[STFG]\d{7}[A-Z]$', re.IGNORECASE)
+        
+        # Basic email check: something@something.something
         self.email_pattern = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+        
+        # Time formats: "2pm", "10:30am" etc.
         self.time_pattern = re.compile(r'^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$', re.IGNORECASE)
+        
+        # Date formats: "15 Aug" or "Aug 15"
         self.date_pattern = re.compile(
             r'^(?:(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|'
             r'(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2}))$',
             re.IGNORECASE
         )
         
-        # FAST LOOKUP for months (no regex needed)
+        # Fast month lookup - dictionary is faster than regex
         self.month_map = {
             'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
             'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
         }
         
-        # PRE-DEFINED booking triggers (set lookup is O(1))
+        # Words that start booking - set lookup is faster than list
         self.booking_triggers = {
             'book', 'appointment', 'schedule', 'booking', 'reserve'
         }
     
+    # ===============================
+    # BOOKING TRIGGER DETECTION
+    # ===============================
+    
     def is_booking_trigger(self, message: str) -> bool:
-        """Simple booking trigger detection"""
+        """
+        Check if user wants to book appointment.
+        Looks for booking words in their message.
+        """
         message_lower = message.lower()
+        # Stop checking as soon as we find a booking word
         return any(word in message_lower for word in ['book', 'appointment', 'schedule', 'booking'])
     
     def get_or_create_guided_session(self, message: str) -> str:
-        """Always start fresh session"""
+        """
+        Start fresh booking. Always wipe old data to avoid mixing bookings.
+        """
         self._reset_session()
         return "current"
     
+    # ===============================
+    # MAIN BOOKING FLOW PROCESSOR
+    # ===============================
+    
     def process_guided_booking_step(self, session_id: str, message: str) -> str:
-        """Optimized step processing"""
+        """
+        Handle each step of booking. Works like a state machine - each step
+        checks input, saves good data, moves to next step.
+        
+        Returns early to avoid extra work.
+        """
         message = message.strip()
         
-        # STATE MACHINE with early returns for speed
+        # Handle each booking step
         if self.current_step == BookingStep.NOT_STARTED:
+            # Start booking process
             self.current_step = BookingStep.COLLECT_NAME
             return "Let's book your appointment!\n\nWhat's your full name?"
         
         elif self.current_step == BookingStep.COLLECT_NAME:
-            if len(message) >= 2:  # Fast validation
+            # Check name is long enough
+            if len(message) >= 2:
                 self.booking_data['name'] = message
                 self.current_step = BookingStep.COLLECT_NRIC
                 return f"Thanks {message}!\n\nYour NRIC? (e.g., S1234567A)"
             return "Please provide your full name."
         
         elif self.current_step == BookingStep.COLLECT_NRIC:
-            nric = message.upper().replace(' ', '')  # Fast cleanup
-            if self.nric_pattern.match(nric):  # Pre-compiled regex
+            # Clean and check NRIC format
+            nric = message.upper().replace(' ', '')
+            if self.nric_pattern.match(nric):
                 self.booking_data['nric'] = nric
                 self.current_step = BookingStep.COLLECT_DATE
                 return "Great!\n\nPreferred date? (e.g., '15 Aug' or 'Aug 15')"
@@ -98,29 +155,40 @@ class BookingService:
         
         return "Something went wrong. Type 'book appointment' to restart."
     
+    # ===============================
+    # INPUT PROCESSING METHODS
+    # ===============================
+    
     def _process_date_input(self, date_str: str) -> str:
-        """Fast date processing with pre-compiled regex"""
+        """
+        Check date input and make sure it's valid.
+        
+        Handles "15 Aug" and "Aug 15" formats.
+        Checks business rules: must be future date, not Sunday.
+        """
+        # Check if date format is right
         match = self.date_pattern.match(date_str.strip().lower())
         if not match:
             return "Please use format like '15 Aug' or 'Aug 15'."
         
         try:
-            # Fast parsing using match groups
+            # Get day and month from the pattern match
             if match.group(1):  # "15 Aug" format
                 day, month_str = int(match.group(1)), match.group(2)
             else:  # "Aug 15" format
                 month_str, day = match.group(3), int(match.group(4))
             
-            month = self.month_map[month_str]  # O(1) lookup
+            # Convert month name to number
+            month = self.month_map[month_str]
             appointment_date = date(datetime.now().year, month, day)
             
-            # Quick validation
+            # Check business rules
             if appointment_date <= date.today():
                 return "Please choose a future date."
             if appointment_date.weekday() == 6:  # Sunday
                 return "We're closed Sundays. Choose Monday-Saturday."
             
-            # Store and proceed
+            # Save date in two formats: one for system, one for user
             self.booking_data['date'] = appointment_date.strftime('%Y-%m-%d')
             self.booking_data['date_formatted'] = appointment_date.strftime('%B %d, %Y')
             self.current_step = BookingStep.COLLECT_TIME
@@ -131,7 +199,12 @@ class BookingService:
             return "Please use a valid date like '15 Aug' or 'Aug 15'."
     
     def _process_time_input(self, time_str: str) -> str:
-        """Fast time processing with pre-compiled regex"""
+        """
+        Check time input and convert to 24-hour format.
+        
+        Handles "2pm", "10:30am" etc.
+        Checks clinic hours: 9 AM to 5 PM only.
+        """
         match = self.time_pattern.match(time_str.strip().lower())
         if not match:
             return "Please use format like '2pm' or '10:30am'."
@@ -141,17 +214,17 @@ class BookingService:
             minute = int(match.group(2) or 0)  # Default to 0 if no minutes
             ampm = match.group(3)
             
-            # Fast 12-hour to 24-hour conversion
+            # Convert 12-hour to 24-hour time
             if ampm == 'pm' and hour != 12:
                 hour += 12
             elif ampm == 'am' and hour == 12:
                 hour = 0
             
-            # Quick business hours check
+            # Check clinic hours
             if not (9 <= hour <= 17):
                 return "Please choose between 9:00 AM and 5:00 PM."
             
-            # Store and proceed
+            # Save time in both formats
             time_24 = f"{hour:02d}:{minute:02d}"
             time_formatted = datetime.strptime(time_24, '%H:%M').strftime('%I:%M %p')
             
@@ -165,16 +238,26 @@ class BookingService:
             return "Please use valid time like '2pm' or '10:30am'."
     
     def _process_email_input(self, email_str: str) -> str:
-        """Fast email processing and booking completion"""
+        """
+        Check email and complete the booking.
+        
+        This is the final step - validates email, then:
+        1. Creates calendar event
+        2. Sends confirmation email
+        3. Shows success message
+        4. Cleans up for next booking
+        """
         email = email_str.strip().lower()
         
-        if not self.email_pattern.match(email):  # Pre-compiled regex
+        # Check email format
+        if not self.email_pattern.match(email):
             return "Please provide a valid email address."
         
         self.booking_data['email'] = email
         
-        # COMPLETE BOOKING (keep existing logic but add error handling)
+        # Complete the booking
         try:
+            # Convert saved date/time back to datetime object
             appointment_date = datetime.strptime(self.booking_data['date'], '%Y-%m-%d').date()
             appointment_time = datetime.strptime(self.booking_data['time'], '%H:%M').time()
             appointment_datetime = datetime.combine(appointment_date, appointment_time)
@@ -192,7 +275,7 @@ class BookingService:
                 dt=appointment_datetime
             )
             
-            # Success message
+            # Show success message with all details
             success_msg = f"""✅ Booking confirmed!
 
 {self.booking_data['name']} - {self.booking_data['nric']}
@@ -207,11 +290,19 @@ To reschedule: +65 6311 2330"""
             return success_msg
             
         except Exception as e:
+            # If anything goes wrong, log it and give phone number
             logger.error(f"Booking error: {e}")
             self._reset_session()
             return "Booking error occurred. Please call +65 6311 2330."
     
+    # ===============================
+    # SESSION MANAGEMENT
+    # ===============================
+    
     def _reset_session(self):
-        """Fast session reset"""
+        """
+        Clear booking data for fresh start.
+        Called after booking complete or when errors happen.
+        """
         self.current_step = BookingStep.NOT_STARTED
-        self.booking_data.clear()  # Faster than creating new dict
+        self.booking_data.clear()  # Faster than making new dict

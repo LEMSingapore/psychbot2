@@ -8,26 +8,25 @@ from google.oauth2 import service_account  # Service account authentication (ser
 from datetime import timedelta  # For calculating appointment end times
 
 # ===============================
-# CONFIGURATION CONSTANTS
+# CONFIGURATION
 # ===============================
 
-# Google Calendar API permissions - allows full calendar access
+# Google Calendar API permissions
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-# Path to the service account credentials file (contains private keys)
-# This file allows the application to authenticate with Google Calendar without user login
+# Service account file with authentication keys
+# Allows app to access calendar without user login
 SERVICE_ACCOUNT_FILE = 'credentials.json'
 
-# The specific Google Calendar ID where appointments will be created
-CALENDAR_ID = 'weddingvowsmanifesto@gmail.com'  # or your actual calendar ID
+# Target calendar for appointments
+CALENDAR_ID = 'weddingvowsmanifesto@gmail.com'
 
 # ===============================
-# AUTHENTICATION SETUP
+# AUTHENTICATION
 # ===============================
 
-# Authenticate using service account credentials
-# Service accounts allow server applications to access Google APIs without user interaction
-# The credentials file contains the private key and other auth information
+# Set up authentication using service account
+# This lets the booking system create events automatically
 creds = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES
 )
@@ -38,35 +37,34 @@ creds = service_account.Credentials.from_service_account_file(
 
 def create_event(summary, start_dt, email=None):  
     """
-    Creates a new appointment event in Google Calendar
+    Create appointment in Google Calendar.
+    
+    Takes appointment details and adds them to the clinic calendar.
+    Standard therapy sessions are 50 minutes long.
     """
     
-    # Build the Google Calendar API service client using our authenticated credentials
+    # Connect to Google Calendar API
     service = build("calendar", "v3", credentials=creds)
 
-    # Calculate appointment end time
-    # CBT (Cognitive Behavioral Therapy) sessions are typically 50 minutes long
-    end_dt = start_dt + timedelta(minutes=50)  # CBT session = 50 mins
+    # Calculate end time - therapy sessions are 50 minutes
+    end_dt = start_dt + timedelta(minutes=50)
 
-    # Create the event data structure that Google Calendar expects
+    # Build event data for Google Calendar
     event = {
-        'summary': summary,  # Event title that appears in the calendar
-        # Start time with timezone (Singapore time zone for local clinic)
+        'summary': summary,  # Event title
         'start': {
-            'dateTime': start_dt.isoformat(),  # Convert datetime to ISO format string
-            'timeZone': 'Asia/Singapore'       # Set timezone for accurate local time
+            'dateTime': start_dt.isoformat(),  # Start time in ISO format
+            'timeZone': 'Asia/Singapore'       # Singapore timezone
         },
-        # End time with same timezone
         'end': {
-            'dateTime': end_dt.isoformat(),    # 50 minutes after start time
+            'dateTime': end_dt.isoformat(),    # End time (50 mins later)
             'timeZone': 'Asia/Singapore'
         },
-        # Note: Attendees/invites are commented out to avoid Google API permission errors
+        # Note: Attendees disabled to avoid permission issues
     }
 
-    # Actually create the event in Google Calendar using the Calendar API
+    # Create the event in Google Calendar
     created_event = service.events().insert(calendarId=CALENDAR_ID, body=event).execute()
     
-    # Return the web URL where the event can be viewed/edited
-    # This link can be shared with the patient or staff for easy access
+    # Return link to view the created event
     return created_event.get('htmlLink')

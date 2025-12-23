@@ -27,8 +27,18 @@ CALENDAR_ID = 'weddingvowsmanifesto@gmail.com'
 
 # Set up authentication using service account
 # This lets the booking system create events automatically
+#creds = service_account.Credentials.from_service_account_file(
+#    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+#)
+
+import os
+from google.oauth2 import service_account
+
+GOOGLE_CREDS_PATH = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "/app/credentials.json")
+
 creds = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    GOOGLE_CREDS_PATH,
+    scopes=SCOPES,
 )
 
 # ===============================

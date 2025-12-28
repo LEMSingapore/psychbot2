@@ -1,11 +1,11 @@
 # src/rag_chain.py - OPTIMIZED for speed
-# Fast RAG system with caching and smaller models
+# Fast RAG system with OpenAI and caching
 
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
-from langchain_community.llms import Ollama
+from langchain_core.prompts import PromptTemplate
+from langchain_classic.chains import RetrievalQA
+from langchain_openai import ChatOpenAI
 import os
 import logging
 from functools import lru_cache
@@ -30,20 +30,20 @@ def get_embeddings_model():
     )
 
 # Load the language model only once and keep it in memory
-@lru_cache(maxsize=1) 
+@lru_cache(maxsize=1)
 def get_llm():
-    """Cached LLM - keeps model loaded in memory"""
-    return Ollama(
-        model="llama3:8b",    # Use 8B model instead of larger 70B for speed
-        # Speed settings - prioritize fast responses over creativity
-        temperature=0.1,      # Low randomness = faster, more predictable responses
-        num_predict=80,       # Limit response length to 80 tokens max
-        num_ctx=1024,         # Small context window = much faster processing
-        repeat_penalty=1.1,   # Prevent repetitive responses
-        top_k=10,            # Only consider top 10 word choices = faster
-        top_p=0.9,           # Focus on most likely words
-        num_thread=4,        # Use 4 CPU threads for consistent performance
-        repeat_last_n=64     # Check last 64 tokens for repetition
+    """Cached LLM - uses OpenAI API for cost-effective cloud deployment"""
+    # Get API key from environment (required)
+    openai_api_key = os.getenv('OPENAI_API_KEY')
+    if not openai_api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is required")
+
+    return ChatOpenAI(
+        model="gpt-3.5-turbo",     # Fast and cost-effective model
+        temperature=0.1,            # Low randomness = consistent responses
+        max_tokens=100,             # Limit response length for cost control
+        openai_api_key=openai_api_key,
+        request_timeout=10          # 10 second timeout for faster failures
     )
 
 # Load the vector database only once
@@ -200,4 +200,4 @@ def preload_system():
                 qa_chain({"query": query}) # Run each test query
             except:
                 pass # Ignore any errors during warm-up
-        logger.info("Llama3:8b system preloaded and warmed up")
+        logger.info("OpenAI system preloaded and warmed up")

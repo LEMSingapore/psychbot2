@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: psychbot-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    # Pull and prepare the llama3:8b model on startup
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        /bin/ollama serve &
+        sleep 10
+        ollama pull llama3:8b
+        wait
+
+  # PsychBot Application
+  psychbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: psychbot-app
+    ports:
+      - "9000:9000"
+    environment:
+      # Ollama connection
+      - OLLAMA_BASE_URL=http://ollama:11434
+
+      # Google Calendar credentials (set these in .env file or pass at runtime)
+      # For local dev: mount credentials.json as volume below
+      # For AWS: set GOOGLE_CREDENTIALS_JSON to the full JSON content
+      - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON:-}
+
+      # SendGrid API key for email
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-}
+
+    volumes:
+      # For local development: mount credentials file
+      # Comment out this line for AWS deployment
+      - ./credentials.json:/app/credentials.json:ro
+
+      # Persist ChromaDB vector database
+      - chroma_data:/app/docs
+
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+volumes:
+  ollama_data:
+    driver: local
+  chroma_data:
+    driver: local
+
+networks:
+  default:
+    name: psychbot-network

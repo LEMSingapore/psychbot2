@@ -1,0 +1,51 @@
+# Render.com Blueprint for PsychBot
+# This file enables one-click deployment to Render.com
+
+services:
+  # PsychBot Web Service
+  - type: web
+    name: psychbot
+    env: docker
+    dockerfilePath: ./Dockerfile.render
+    plan: starter  # $7/month - upgrade to standard ($25) for more resources
+    region: singapore  # Choose closest to your users: oregon, frankfurt, singapore
+    branch: main
+
+    # Auto-deploy on git push
+    autoDeploy: true
+
+    # Health check endpoint
+    healthCheckPath: /docs
+
+    # Environment variables
+    envVars:
+      # OpenAI API Key (REQUIRED - set this in Render dashboard)
+      - key: OPENAI_API_KEY
+        sync: false  # Set manually in Render dashboard for security
+
+      # SendGrid API Key (REQUIRED - set in Render dashboard)
+      - key: SENDGRID_API_KEY
+        sync: false
+
+      # Google Calendar Credentials JSON (REQUIRED - set in Render dashboard)
+      # Paste the entire contents of credentials.json as a string
+      - key: GOOGLE_CREDENTIALS_JSON
+        sync: false
+
+      # Python environment
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+    # Persistent disk for ChromaDB vector database
+    # This ensures your vector database persists across deploys
+    disk:
+      name: psychbot-data
+      mountPath: /app/docs
+      sizeGB: 1  # 1GB is plenty for the vector database
+
+# Cost breakdown:
+# - Starter plan: $7/month (512MB RAM, 0.5 CPU)
+# - Standard plan: $25/month (2GB RAM, 1 CPU) - recommended for production
+# - Disk: Free for first 1GB
+# - OpenAI API: ~$0.20-2/month for typical usage (1000 queries)
+# Total: $7-27/month

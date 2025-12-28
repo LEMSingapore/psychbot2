@@ -5,7 +5,7 @@
 import os
 # LangChain imports for document processing and vector storage
 from langchain_community.document_loaders import TextLoader  # Loads text files into LangChain document format
-from langchain.text_splitter import RecursiveCharacterTextSplitter  # Splits large documents into smaller chunks
+from langchain_text_splitters import RecursiveCharacterTextSplitter  # Splits large documents into smaller chunks
 from langchain_huggingface import HuggingFaceEmbeddings  # Converts text to numerical vectors using HuggingFace models
 from langchain_community.vectorstores import Chroma  # Vector database for storing and searching embeddings
 

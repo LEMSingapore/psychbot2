@@ -6,6 +6,8 @@
 from googleapiclient.discovery import build  # Main Google API client builder
 from google.oauth2 import service_account  # Service account authentication (server-to-server)
 from datetime import timedelta  # For calculating appointment end times
+import os
+import json
 
 # ===============================
 # CONFIGURATION
@@ -25,21 +27,29 @@ CALENDAR_ID = 'weddingvowsmanifesto@gmail.com'
 # AUTHENTICATION
 # ===============================
 
+def get_credentials():
+    """
+    Get Google Calendar credentials from environment or file.
+    Supports both AWS deployment (env var) and local development (file).
+    """
+    # Try loading from environment variable (AWS Secrets Manager / container deployment)
+    credentials_json = os.getenv('GOOGLE_CREDENTIALS_JSON')
+
+    if credentials_json:
+        # Parse JSON from environment variable
+        credentials_info = json.loads(credentials_json)
+        return service_account.Credentials.from_service_account_info(
+            credentials_info, scopes=SCOPES
+        )
+    else:
+        # Fall back to file (local development)
+        return service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES
+        )
+
 # Set up authentication using service account
 # This lets the booking system create events automatically
-#creds = service_account.Credentials.from_service_account_file(
-#    SERVICE_ACCOUNT_FILE, scopes=SCOPES
-#)
-
-import os
-from google.oauth2 import service_account
-
-GOOGLE_CREDS_PATH = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "/app/credentials.json")
-
-creds = service_account.Credentials.from_service_account_file(
-    GOOGLE_CREDS_PATH,
-    scopes=SCOPES,
-)
+creds = get_credentials()
 
 # ===============================
 # CALENDAR FUNCTIONS

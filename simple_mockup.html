@@ -466,8 +466,8 @@
             // Show typing
             const typingMsg = addMessage('<strong>PsychBot:</strong> <em>typing...</em>');
 
-            // API call with fallback
-            fetch("http://127.0.0.1:9000/chat", {
+            // API call to live Render deployment
+            fetch("https://psychbot-v9x3.onrender.com/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: message })

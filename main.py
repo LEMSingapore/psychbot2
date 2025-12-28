@@ -8,6 +8,10 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 import logging
 import asyncio
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Import custom modules for the application's core functionality
 from src.models import ChatRequest, ChatResponse

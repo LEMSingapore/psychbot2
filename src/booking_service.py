@@ -264,26 +264,33 @@ class BookingService:
             appointment_time = datetime.strptime(self.booking_data['time'], '%H:%M').time()
             appointment_datetime = datetime.combine(appointment_date, appointment_time)
             
-            # Create calendar event and send email
+            # Create calendar event
             create_event(
                 summary=f"Therapy - {self.booking_data['name']}",
                 start_dt=appointment_datetime,
                 email=email
             )
-            
-            send_confirmation(
-                to_email=email,
-                name=self.booking_data['name'],
-                dt=appointment_datetime
-            )
-            
+
+            # Try to send email confirmation (optional - don't fail if it doesn't work)
+            email_sent = False
+            try:
+                send_confirmation(
+                    to_email=email,
+                    name=self.booking_data['name'],
+                    dt=appointment_datetime
+                )
+                email_sent = True
+            except Exception as email_error:
+                logger.warning(f"Email sending failed (non-critical): {email_error}")
+
             # Show success message with all details
+            email_status = f"Confirmation sent to {email}" if email_sent else f"Email: {email} (confirmation pending)"
             success_msg = f"""✅ Booking confirmed!
 
 {self.booking_data['name']} - {self.booking_data['nric']}
 {appointment_datetime.strftime('%A, %B %d at %I:%M %p')}
 
-Confirmation sent to {email}
+{email_status}
 Location: Level 8, Raffles Specialist Centre
 
 To reschedule: +65 6311 2330"""
@@ -293,9 +300,9 @@ To reschedule: +65 6311 2330"""
             
         except Exception as e:
             # If anything goes wrong, log it and give phone number
-            logger.error(f"Booking error: {e}")
+            logger.error(f"Booking error: {e}", exc_info=True)
             self._reset_session()
-            return "Booking error occurred. Please call +65 6311 2330."
+            return f"Booking error occurred: {str(e)}\n\nPlease call +65 6311 2330 to book manually."
     
     # ===============================
     # SESSION CLEANUP

@@ -2,7 +2,7 @@
 # Fast RAG system with OpenAI and caching
 
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_classic.chains import RetrievalQA
 from langchain_openai import ChatOpenAI
@@ -22,11 +22,14 @@ logger = logging.getLogger(__name__)
 # Load the text embedding model only once and reuse it
 @lru_cache(maxsize=1)
 def get_embeddings_model():
-    """Cached embeddings model - loads once and reuses"""
-    return HuggingFaceEmbeddings(
-        model_name="all-MiniLM-L6-v2",
-        model_kwargs={'device': 'cpu'},  # Explicitly use CPU
-        encode_kwargs={'normalize_embeddings': True}  # Faster processing
+    """Cached embeddings model - uses OpenAI for low memory footprint"""
+    openai_api_key = os.getenv('OPENAI_API_KEY')
+    if not openai_api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is required")
+
+    return OpenAIEmbeddings(
+        model="text-embedding-3-small",  # Cheap and efficient: $0.02 per 1M tokens
+        openai_api_key=openai_api_key
     )
 
 # Load the language model only once and keep it in memory

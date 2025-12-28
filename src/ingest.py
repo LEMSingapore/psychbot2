@@ -6,7 +6,7 @@ import os
 # LangChain imports for document processing and vector storage
 from langchain_community.document_loaders import TextLoader  # Loads text files into LangChain document format
 from langchain_text_splitters import RecursiveCharacterTextSplitter  # Splits large documents into smaller chunks
-from langchain_huggingface import HuggingFaceEmbeddings  # Converts text to numerical vectors using HuggingFace models
+from langchain_openai import OpenAIEmbeddings  # Converts text to numerical vectors using OpenAI API
 from langchain_community.vectorstores import Chroma  # Vector database for storing and searching embeddings
 
 # ===============================
@@ -42,8 +42,15 @@ def ingest_data(data_dir="data", persist_dir="docs"):
     print(f"✂️ Split into {len(chunks)} chunks.")
 
     # STEP 3: Set up model to convert text to vectors
-    # Uses fast model that understands text meaning
-    embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    # Uses OpenAI embeddings API - lightweight and efficient
+    openai_api_key = os.getenv('OPENAI_API_KEY')
+    if not openai_api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is required")
+
+    embedding_model = OpenAIEmbeddings(
+        model="text-embedding-3-small",
+        openai_api_key=openai_api_key
+    )
 
     # STEP 4: Create searchable vector database
     # Stores chunks as vectors so chatbot can find relevant content
